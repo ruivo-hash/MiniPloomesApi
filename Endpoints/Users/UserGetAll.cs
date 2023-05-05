@@ -1,5 +1,4 @@
-﻿using MiniPloomesApi.Domain;
-using MiniPloomesApi.Repositories;
+﻿using MiniPloomesApi.Repositories;
 
 namespace MiniPloomesApi.Endpoints.Users
 {

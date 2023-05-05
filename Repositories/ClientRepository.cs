@@ -6,26 +6,27 @@ using System.Data.SqlClient;
 
 namespace MiniPloomesApi.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class ClientRepository : IClientRepository
     {
         private readonly IConfiguration _config;
 
-        public UserRepository(IConfiguration config)
+        public ClientRepository(IConfiguration config)
         {
             _config = config;
         }
 
-        public void Create(User user)
+        public void Create(Client client)
         {
             using(SqlConnection conn = new SqlConnection(_config.GetValue<string>("Database:ConnectionString")))
             {
                 conn.Open();
                 try
                 {
-                    using(SqlCommand command = new SqlCommand("INSERT INTO Users VALUES (@Name, @Email)", conn))
+                    using(SqlCommand command = new SqlCommand("INSERT INTO Clients VALUES (@Name, @CreationDate, @UserId)", conn))
                     {
-                        command.Parameters.Add(new SqlParameter("Name", user.Name));
-                        command.Parameters.Add(new SqlParameter("Email", user.Email));
+                        command.Parameters.Add(new SqlParameter("Name", client.Name));
+                        command.Parameters.Add(new SqlParameter("CreationDate", client.CreationDate));
+                        command.Parameters.Add(new SqlParameter("UserId", client.UserId));
                         command.ExecuteNonQuery();
                     }
                 }
@@ -36,23 +37,24 @@ namespace MiniPloomesApi.Repositories
             }
         }
 
-        public List<UserResponse> GetAll()
+        public List<ClientResponse> GetAll()
         {
-            List<UserResponse> users = new List<UserResponse>();
+            List<ClientResponse> clients = new List<ClientResponse>();
             using (SqlConnection conn = new SqlConnection(_config.GetValue<string>("Database:ConnectionString")))
             {
                 conn.Open();
                 try
                 {
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM Users", conn))
+                    using (SqlCommand command = new SqlCommand("SELECT * FROM Clients", conn))
                     {
                         SqlDataReader reader = command.ExecuteReader();
                         while (reader.Read())
                         {
                             int id = reader.GetInt16(0);
                             string name = reader.GetString(1);
-                            string email = reader.GetString(2);
-                            users.Add(new UserResponse(id, name, email));
+                            DateTime creation = reader.GetDateTime(2);
+                            int user = reader.GetInt16(3);
+                            clients.Add(new ClientResponse(id, name, creation, user));
                         }
                     }
                 }
@@ -60,27 +62,29 @@ namespace MiniPloomesApi.Repositories
                 {
                     Console.WriteLine(e.Message);
                 }
-                return users;
+                return clients;
             }
         }
 
-        public UserResponse GetById(int id)
+        public List<ClientResponse> GetByUser(int userId)
         {
+            List<ClientResponse> clients = new List<ClientResponse>();
             using (SqlConnection conn = new SqlConnection(_config.GetValue<string>("Database:ConnectionString")))
             {
-                UserResponse user = null;
                 conn.Open();
                 try
                 {
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM Users WHERE Id = @Id", conn))
+                    using (SqlCommand command = new SqlCommand("SELECT * FROM Clients WHERE UserId = @UserId", conn))
                     {
-                        command.Parameters.Add(new SqlParameter("Id", id));
+                        command.Parameters.Add(new SqlParameter("UserId", userId));
                         SqlDataReader reader = command.ExecuteReader();
                         while (reader.Read())
                         {
+                            int id = reader.GetInt16(0);
                             string name = reader.GetString(1);
-                            string email = reader.GetString(2);
-                            user = new UserResponse(id, name, email);
+                            DateTime creation = reader.GetDateTime(2);
+                            int user = reader.GetInt16(3);
+                            clients.Add(new ClientResponse(id, name, creation, user));
                         }
                     }
                 }
@@ -88,7 +92,7 @@ namespace MiniPloomesApi.Repositories
                 {
                     Console.WriteLine(e.Message);
                 }
-                return user;
+                return clients;
             }
         }
     }

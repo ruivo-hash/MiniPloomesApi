@@ -1,10 +1,12 @@
 ﻿using MiniPloomesApi.Domain;
+using MiniPloomesApi.Endpoints.Users;
 
 namespace MiniPloomesApi.Repositories
 {
     public interface IUserRepository
     {
         void Create(User user);
-        List<User> GetAll();
+        List<UserResponse> GetAll();
+        UserResponse GetById(int id);
     }
 }
